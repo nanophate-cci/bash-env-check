@@ -1,0 +1,46 @@
+version: 2.1
+
+jobs:
+  test-env-update:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+      - run:
+          name: Test Environment Variable Updates
+          shell: bash
+          command: |
+            #!/bin/bash
+
+            # Initialize CURRENT_TIME environment variable
+            CURRENT_TIME_INITIAL=$(date)
+            echo "Initial CURRENT_TIME: ${CURRENT_TIME_INITIAL}" >> $BASH_ENV
+            source $BASH_ENV
+            echo "Source initial CURRENT_TIME: ${CURRENT_TIME}"
+
+            # Function to update CURRENT_TIME every minute
+            update_current_time() {
+              while true; do
+                sleep 10  # Wait for 10 seconds
+                NEW_TIME=$(date)
+                echo "Updating CURRENT_TIME to ${NEW_TIME}"
+                echo "CURRENT_TIME='${NEW_TIME}'" >> $BASH_ENV
+              done
+            }
+
+            # Start the background process
+            update_current_time &
+            UPDATER_PID=$!
+            echo "Started background updater with PID ${UPDATER_PID}"
+
+            # Foreground loop to display CURRENT_TIME every 30 seconds
+            for i in {1..10}; do
+              sleep 30  # Wait for 30 seconds
+              # Source the latest environment variables
+              source $BASH_ENV
+              echo "Loop iteration $i: CURRENT_TIME=${CURRENT_TIME}"
+            done
+
+            # Cleanup: Terminate the background updater
+            kill $UPDATER_PID
+            echo "Terminated background updater with PID ${UPDATER_PID}"
