@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  test-env-update:
+  build:
     docker:
       - image: cimg/base:current
     steps:
